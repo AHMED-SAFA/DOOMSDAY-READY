@@ -15,12 +15,15 @@ import { Add, Search } from '@mui/icons-material';
 import { createMovie, getMovies, updateMovie } from '../api/client';
 import { MovieCard } from '../components/MovieCard';
 import { MovieDialog } from '../components/MovieDialog';
+import { PaginationControls } from '../components/PaginationControls';
 import { Movie } from '../types';
 
 export const MoviesPage: React.FC = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(6);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingMovie, setEditingMovie] = useState<Movie | null>(null);
   const [snackbar, setSnackbar] = useState<{
@@ -108,6 +111,10 @@ export const MoviesPage: React.FC = () => {
   const filteredMovies = movies.filter((m) =>
     m.title.toLowerCase().includes(search.toLowerCase())
   );
+  const paginatedMovies = filteredMovies.slice(
+    (page - 1) * perPage,
+    page * perPage
+  );
 
   return (
     <Box>
@@ -143,7 +150,10 @@ export const MoviesPage: React.FC = () => {
       <TextField
         placeholder="Search movies..."
         value={search}
-        onChange={(e) => setSearch(e.target.value)}
+        onChange={(e) => {
+          setSearch(e.target.value);
+          setPage(1);
+        }}
         fullWidth
         size="small"
         sx={{ mb: 3 }}
@@ -181,7 +191,7 @@ export const MoviesPage: React.FC = () => {
         </Box>
       ) : (
         <Grid container spacing={2.5}>
-          {filteredMovies.map((movie) => (
+          {paginatedMovies.map((movie) => (
             <Grid size={{ xs: 12, sm: 6, md: 4 }} key={movie.id}>
               <MovieCard
                 movie={movie}
@@ -191,6 +201,18 @@ export const MoviesPage: React.FC = () => {
             </Grid>
           ))}
         </Grid>
+      )}
+      {!loading && filteredMovies.length > 0 && (
+        <PaginationControls
+          count={filteredMovies.length}
+          page={page}
+          perPage={perPage}
+          onPageChange={setPage}
+          onPerPageChange={(size) => {
+            setPerPage(size);
+            setPage(1);
+          }}
+        />
       )}
 
       {/* Floating Action Button for mobile */}

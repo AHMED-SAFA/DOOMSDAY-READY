@@ -8,14 +8,21 @@ import {
   Checkbox,
   Chip,
   CircularProgress,
+  InputAdornment,
   Paper,
   Stack,
   TextField,
   Typography,
 } from '@mui/material';
-import { AccessTime, CheckCircle, RadioButtonUnchecked } from '@mui/icons-material';
+import {
+  AccessTime,
+  CheckCircle,
+  RadioButtonUnchecked,
+  Search,
+} from '@mui/icons-material';
 import { getMovies, getRewatchOrder, updateMovie } from '../api/client';
 import { ProgressBar } from '../components/ProgressBar';
+import { PaginationControls } from '../components/PaginationControls';
 import { Movie, RewatchOrder } from '../types';
 
 export const RewatchPage: React.FC = () => {
@@ -25,6 +32,9 @@ export const RewatchPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(6);
 
   useEffect(() => {
     const fetchMovies = async () => {
@@ -105,6 +115,16 @@ export const RewatchPage: React.FC = () => {
     return hours > 0 ? `${hours}h ${remainingMins}m` : `${remainingMins}m`;
   };
 
+  const filteredRewatchMovies = (rewatchData?.movies ?? []).filter((movie) =>
+    `${movie.title} ${movie.release_year}`
+      .toLowerCase()
+      .includes(search.toLowerCase())
+  );
+  const paginatedRewatchMovies = filteredRewatchMovies.slice(
+    (page - 1) * perPage,
+    page * perPage
+  );
+
   return (
     <Box>
       <Box sx={{ mb: 3 }}>
@@ -128,7 +148,11 @@ export const RewatchPage: React.FC = () => {
           options={movies}
           getOptionLabel={(option) => `${option.title} (${option.release_year})`}
           value={selectedMovie}
-          onChange={(_, newValue) => setSelectedMovie(newValue)}
+          onChange={(_, newValue) => {
+            setSelectedMovie(newValue);
+            setSearch('');
+            setPage(1);
+          }}
           loading={initialLoading}
           renderInput={(params) => (
             <TextField
@@ -182,77 +206,116 @@ export const RewatchPage: React.FC = () => {
             Viewing Order ({rewatchData.total_count} movies)
           </Typography>
 
-          <Stack spacing={2}>
-            {rewatchData.movies.map((movie, index) => (
-              <Card
-                key={movie.id}
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  p: 2,
-                  borderLeft: movie.watched
-                    ? '4px solid #4caf50'
-                    : '4px solid #e53935',
-                  opacity: movie.watched ? 0.7 : 1,
-                  transition: 'all 0.2s ease',
-                }}
-              >
-                {/* Step Number */}
-                <Box
+          <TextField
+            placeholder="Search rewatch list..."
+            value={search}
+            onChange={(event) => {
+              setSearch(event.target.value);
+              setPage(1);
+            }}
+            fullWidth
+            size="small"
+            sx={{ mb: 2 }}
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search />
+                  </InputAdornment>
+                ),
+              },
+            }}
+          />
+
+          {filteredRewatchMovies.length === 0 ? (
+            <Typography color="text.secondary" sx={{ py: 3 }}>
+              No movies match your search.
+            </Typography>
+          ) : (
+            <Stack spacing={2}>
+              {paginatedRewatchMovies.map((movie, index) => (
+                <Card
+                  key={movie.id}
                   sx={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: '50%',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    bgcolor: movie.watched ? 'success.main' : 'primary.main',
-                    color: '#fff',
-                    fontWeight: 700,
-                    fontSize: '0.9rem',
-                    mr: 2,
-                    flexShrink: 0,
+                    p: 2,
+                    borderLeft: movie.watched
+                      ? '4px solid #4caf50'
+                      : '4px solid #e53935',
+                    opacity: movie.watched ? 0.7 : 1,
+                    transition: 'all 0.2s ease',
                   }}
                 >
-                  {index + 1}
-                </Box>
-
-                {/* Movie Details */}
-                <Box sx={{ flexGrow: 1 }}>
-                  <Typography
-                    variant="subtitle1"
+                  {/* Step Number */}
+                  <Box
                     sx={{
-                      fontWeight: 600,
-                      textDecoration: movie.watched ? 'line-through' : 'none',
+                      width: 36,
+                      height: 36,
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      bgcolor: movie.watched ? 'success.main' : 'primary.main',
+                      color: '#fff',
+                      fontWeight: 700,
+                      fontSize: '0.9rem',
+                      mr: 2,
+                      flexShrink: 0,
                     }}
                   >
-                    {movie.title}
-                  </Typography>
-                  <Stack direction="row" spacing={1} sx={{ mt: 0.5 }}>
-                    <Chip
-                      label={movie.release_year}
-                      size="small"
-                      variant="outlined"
-                    />
-                    <Chip
-                      icon={<AccessTime sx={{ fontSize: '0.9rem !important' }} />}
-                      label={formatRuntime(movie.runtime)}
-                      size="small"
-                      variant="outlined"
-                    />
-                  </Stack>
-                </Box>
+                    {(page - 1) * perPage + index + 1}
+                  </Box>
 
-                {/* Watched Checkbox */}
-                <Checkbox
-                  checked={movie.watched}
-                  onChange={() => handleToggleWatched(movie)}
-                  icon={<RadioButtonUnchecked />}
-                  checkedIcon={<CheckCircle color="success" />}
-                />
-              </Card>
-            ))}
-          </Stack>
+                  {/* Movie Details */}
+                  <Box sx={{ flexGrow: 1 }}>
+                    <Typography
+                      variant="subtitle1"
+                      sx={{
+                        fontWeight: 600,
+                        textDecoration: movie.watched ? 'line-through' : 'none',
+                      }}
+                    >
+                      {movie.title}
+                    </Typography>
+                    <Stack direction="row" spacing={1} sx={{ mt: 0.5 }}>
+                      <Chip
+                        label={movie.release_year}
+                        size="small"
+                        variant="outlined"
+                      />
+                      <Chip
+                        icon={<AccessTime sx={{ fontSize: '0.9rem !important' }} />}
+                        label={formatRuntime(movie.runtime)}
+                        size="small"
+                        variant="outlined"
+                      />
+                    </Stack>
+                  </Box>
+
+                  {/* Watched Checkbox */}
+                  <Checkbox
+                    checked={movie.watched}
+                    onChange={() => handleToggleWatched(movie)}
+                    icon={<RadioButtonUnchecked />}
+                    checkedIcon={<CheckCircle color="success" />}
+                  />
+                </Card>
+              ))}
+            </Stack>
+          )}
+          {filteredRewatchMovies.length > 0 && (
+            <PaginationControls
+              count={filteredRewatchMovies.length}
+              page={page}
+              perPage={perPage}
+              onPageChange={setPage}
+              onPerPageChange={(size) => {
+                setPerPage(size);
+                setPage(1);
+              }}
+            />
+          )}
         </Box>
       ) : null}
     </Box>

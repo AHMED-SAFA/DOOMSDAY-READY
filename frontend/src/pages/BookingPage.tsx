@@ -9,6 +9,7 @@ import {
   CircularProgress,
   Divider,
   Grid,
+  InputAdornment,
   Paper,
   Stack,
   TextField,
@@ -18,10 +19,12 @@ import {
   Add,
   CheckCircle,
   ReportProblem,
+  Search,
 } from '@mui/icons-material';
 import { createCinema, getBookingQuote, getCinemas } from '../api/client';
 import { CinemaCard } from '../components/CinemaCard';
 import { CinemaDialog } from '../components/CinemaDialog';
+import { PaginationControls } from '../components/PaginationControls';
 import { BookingQuote, Cinema } from '../types';
 
 export const BookingPage: React.FC = () => {
@@ -33,6 +36,9 @@ export const BookingPage: React.FC = () => {
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cinemaSearch, setCinemaSearch] = useState('');
+  const [cinemaPage, setCinemaPage] = useState(1);
+  const [cinemasPerPage, setCinemasPerPage] = useState(6);
 
   const fetchCinemas = async () => {
     setLoading(true);
@@ -82,6 +88,16 @@ export const BookingPage: React.FC = () => {
     setSelectedCinema(created);
   };
 
+  const filteredCinemas = cinemas.filter((cinema) =>
+    `${cinema.name} ${cinema.bundle_sizes.join(' ')}`
+      .toLowerCase()
+      .includes(cinemaSearch.toLowerCase())
+  );
+  const paginatedCinemas = filteredCinemas.slice(
+    (cinemaPage - 1) * cinemasPerPage,
+    cinemaPage * cinemasPerPage
+  );
+
   return (
     <Box>
       <Box
@@ -128,8 +144,28 @@ export const BookingPage: React.FC = () => {
             <Typography variant="h6" gutterBottom sx={{ fontWeight: 700 }}>
               1. Choose a Cinema
             </Typography>
+            <TextField
+              placeholder="Search cinemas..."
+              value={cinemaSearch}
+              onChange={(event) => {
+                setCinemaSearch(event.target.value);
+                setCinemaPage(1);
+              }}
+              fullWidth
+              size="small"
+              sx={{ mb: 2 }}
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Search />
+                    </InputAdornment>
+                  ),
+                },
+              }}
+            />
             <Stack spacing={2}>
-              {cinemas.map((cinema) => (
+              {paginatedCinemas.map((cinema) => (
                 <CinemaCard
                   key={cinema.id}
                   cinema={cinema}
@@ -137,14 +173,28 @@ export const BookingPage: React.FC = () => {
                   onSelect={setSelectedCinema}
                 />
               ))}
-              {cinemas.length === 0 && (
+              {filteredCinemas.length === 0 && (
                 <Paper sx={{ p: 3, textAlign: 'center' }}>
                   <Typography variant="body2" color="text.secondary">
-                    No cinemas available. Add one to get started!
+                    {cinemaSearch
+                      ? 'No cinemas match your search.'
+                      : 'No cinemas available. Add one to get started!'}
                   </Typography>
                 </Paper>
               )}
             </Stack>
+            {filteredCinemas.length > 0 && (
+              <PaginationControls
+                count={filteredCinemas.length}
+                page={cinemaPage}
+                perPage={cinemasPerPage}
+                onPageChange={setCinemaPage}
+                onPerPageChange={(size) => {
+                  setCinemasPerPage(size);
+                  setCinemaPage(1);
+                }}
+              />
+            )}
           </Grid>
 
           {/* Group Size & Quote */}
