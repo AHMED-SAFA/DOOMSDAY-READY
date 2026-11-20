@@ -1,0 +1,54 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: doomsday-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: doomsday_ready
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: safa
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: doomsday-backend
+    restart: unless-stopped
+    environment:
+      DEBUG: "False"
+      SECRET_KEY: "django-insecure-doomsday-ready-prod-change-this"
+      DATABASE_URL: "postgres://postgres:safa@db:5432/doomsday_ready"
+      ALLOWED_HOSTS: "localhost,127.0.0.1,backend"
+      CORS_ALLOWED_ORIGINS: "http://localhost,http://localhost:80,http://localhost:5173"
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py seed_data --no-input 2>/dev/null;
+             gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: doomsday-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
