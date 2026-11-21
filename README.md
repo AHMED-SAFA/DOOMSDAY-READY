@@ -8,10 +8,13 @@
 [![Docker](https://img.shields.io/badge/Docker-Enabled-2496ed?logo=docker)](https://docker.com)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql)](https://postgresql.org)
 
+
 **Doomsday Ready** is a full-stack web application designed for MCU (Marvel Cinematic Universe) fans preparing for *Avengers: Doomsday*. It solves two core challenges:
 
 1. **Viewing Order Planner**: Many MCU movies build on earlier ones. Given a target movie, the app returns every prerequisite in the exact chronological dependency order (using topological sort), tracking watch progress and unwatched runtime, while strictly rejecting circular dependencies.
 2. **Watch-Party Booking Engine**: Cinemas sell opening-night seats strictly in fixed bundles. Given a cinema and group size, the app computes the minimum number of bundles needed so *zero seats are wasted*, or confirms if no exact combination exists.
+
+<a href="https://doomsday-ready-2.onrender.com/" target="_blank">Doomsday Ready (Click to view)</a>
 
 ---
 
@@ -170,7 +173,7 @@ cd doomsday-ready/backend
 
 # Create and activate virtual environment
 python -m venv venv
-source venv/bin/activate
+source venv/Scripts/activate
 
 # Install dependencies
 pip install -r requirements.txt
