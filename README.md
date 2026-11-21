@@ -80,6 +80,19 @@ erDiagram
     MOVIE ||--o{ MOVIE_PREREQUISITES : "is prerequisite for"
 ```
 
+## Screenshots
+
+<img width="1095" height="821" alt="image" src="https://github.com/user-attachments/assets/203ccae8-3f94-4e03-95cd-1a80c4d7fd9e" />
+
+<img width="1112" height="882" alt="image" src="https://github.com/user-attachments/assets/528db9b5-5bd3-4010-bf70-aa79ef42910f" />
+
+<img width="1183" height="754" alt="image" src="https://github.com/user-attachments/assets/07d6a7cb-754a-4dc1-ab97-310de368d441" />
+
+<img width="1115" height="867" alt="image" src="https://github.com/user-attachments/assets/788e8c05-8898-4e2f-8b60-6bc92080288d" />
+
+<img width="1128" height="830" alt="image" src="https://github.com/user-attachments/assets/4c474131-7b70-45f6-9679-85452cbd7974" />
+
+
 ### Model Descriptions
 
 * **`Movie`**: Stores movie metadata and watched status.
