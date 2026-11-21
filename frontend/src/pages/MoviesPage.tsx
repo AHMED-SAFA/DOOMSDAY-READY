@@ -40,7 +40,7 @@ export const MoviesPage: React.FC = () => {
     } catch (err: any) {
       setSnackbar({
         open: true,
-        message: 'Failed to load movies. Is the backend running?',
+        message: 'Failed to load movies.',
         severity: 'error',
       });
     } finally {
